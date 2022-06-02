@@ -27,10 +27,10 @@ class BaseAPI(object):
             self._session.init_auth(api_key)
 
     @property
-    def url(self):
+    def url(self) -> str:
         return urljoin(self._base_url, self.version)
 
-    def _request(self, endpoint: str, params: Dict = None, data: Dict = None):
+    def _request(self, endpoint: str, params: Dict = None, data: Dict = None) -> Dict:
         data = data or {}
         params = params or {}
         url = f'{self.url}/{endpoint}'
@@ -55,7 +55,7 @@ class WhaleAlert(BaseAPI):
         self.default_min_value = 100000 if self.plan == Plan.PERSONAL else 5000000
         super().__init__(api_key, version)
 
-    def status(self):
+    def status(self) -> Dict:
         """
         Shows the current status of Whale Alert.
         Response lists all currently tracked blockchains, currencies and the current status for each blockchain.
@@ -64,7 +64,7 @@ class WhaleAlert(BaseAPI):
         """
         return self._request("/status")
 
-    def transaction(self, blockchain: str, hash: str):  # noqa
+    def transaction(self, blockchain: str, hash: str) -> Dict:  # noqa
         """
         Returns the transaction from a specific blockchain by hash.
         Blockchain inputs are: bitcoin, ethereum, ripple, neo, eos, tron and stellar.
@@ -78,7 +78,7 @@ class WhaleAlert(BaseAPI):
         return self._request(f"/transaction/{blockchain}/{hash}")
 
     def transactions(self, start: int, end: int = None, cursor: str = None, min_value: Optional[int] = None,
-                     limit: int = 100, currency: str = None):
+                     limit: int = 100, currency: str = None) -> Dict:
         """
         Returns transactions with timestamp after a set start time (excluding) in order in which they were added
         to our database. This timestamp is the execution time of the transaction on its respective blockchain.
