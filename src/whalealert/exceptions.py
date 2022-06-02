@@ -2,6 +2,11 @@ import ast
 
 
 def handle_error_response(response):
+    """
+    Translate requests.exceptions.HTTPError responses to WhaleAlertAPIException
+    :param response:
+    :return:
+    """
     resp_dict = ast.literal_eval(response.text)
     message = resp_dict['message']
     reason = response.reason
@@ -12,6 +17,9 @@ def handle_error_response(response):
 
 
 class WhaleAlertAPIException(Exception):
+    """
+    Wrapper for requests.exceptions.HTTPError
+    """
 
     def __init__(self, message=None, status_code=None, response=None, reason=None, result=None):
         self.response = response

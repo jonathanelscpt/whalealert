@@ -4,13 +4,16 @@ from urllib.parse import urljoin
 from whalealert.exceptions import handle_error_response
 from whalealert.session import WhaleAlertAPISession
 from whalealert.enums import Plan
-from requests import RequestException
+from requests import HTTPError
+
+
+BASE_URL = 'https://api.whale-alert.io/'
 
 
 class BaseAPI(object):
 
     def __init__(
-            self, api_key: str, version: str = "v1", timeout: int = 5
+            self, api_key: str, version: str, timeout: int = 5
     ):
         """
         Instantiate a new API client.
@@ -19,7 +22,6 @@ class BaseAPI(object):
             version (str): API version to use. This should remain 'v1'.
             api_key (str): api key for authenticated APIs.
         """
-        self._base_url = 'https://api.whale-alert.io/'
         self.version = version
         self.timeout = timeout
         self._session = WhaleAlertAPISession()
@@ -28,16 +30,16 @@ class BaseAPI(object):
 
     @property
     def url(self) -> str:
-        return urljoin(self._base_url, self.version)
+        return urljoin(BASE_URL, self.version)
 
     def _request(self, endpoint: str, params: Dict = None, data: Dict = None) -> Dict:
         data = data or {}
         params = params or {}
         url = f'{self.url}/{endpoint}'
-        resp = self._session.request("GET", url=url, params=params, json=data)
+        resp = self._session.request("GET", url=url, params=params, json=data, timeout=self.timeout)
         try:
             resp.raise_for_status()
-        except RequestException:
+        except HTTPError:
             handle_error_response(resp)
         return resp.json()
 
@@ -49,11 +51,11 @@ class WhaleAlert(BaseAPI):
     More blockchains will be added in the future. Please read our terms and conditions before using the API.
     """
 
-    def __init__(self, api_key: str, version: str, plan: Optional[Union[Plan, str]] = None):
+    def __init__(self, api_key: str, version: str = 'v1', plan: Optional[Union[Plan, str]] = None, timeout: int = 5):
         plan = plan or Plan.FREE
         self.plan = plan if isinstance(plan, Plan) else Plan(plan)
-        self.default_min_value = 100000 if self.plan == Plan.PERSONAL else 5000000
-        super().__init__(api_key, version)
+        self.plan_min_value = 100000 if self.plan == Plan.PERSONAL else 5000000
+        super().__init__(api_key=api_key, version=version, timeout=timeout)
 
     def status(self) -> Dict:
         """
@@ -101,7 +103,7 @@ class WhaleAlert(BaseAPI):
         :param currency:
         :return: Returns transactions for a specific currency code. Returns all currencies by default.
         """
-        min_value = min_value or self.default_min_value
+        min_value = min_value or self.plan_min_value
         params = {
             k: v for k, v
             in {'end': end, 'cursor': cursor, 'min_value': min_value, 'limit': limit, 'currency': currency}.items()
@@ -109,3 +111,6 @@ class WhaleAlert(BaseAPI):
         }
         params.update({'start': start})
         return self._request("/transactions", params=params)
+
+    def blockchains(self):
+        return self._request("/status")["blockchains"]
