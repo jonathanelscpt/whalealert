@@ -35,13 +35,14 @@ To use the WhaleAlert API client:
 
     from whalealert import WhaleAlert
     import whalealert.utils as utils
+    from whalealert.enums import Blockchain.btc
 
     api_key = 'xxxxxxxxxxxxxxxxxxx'
 
     client = WhaleAlert(api_key=api_key)
     recent = datetime.datetime.now() - datetime.timedelta(minutes=30)
     print(utils.ephoch_time(recent))
-    resp = c.transactions(start=utils.ephoch_time(recent), currency='btc')
+    resp = c.transactions(start=utils.ephoch_time(recent), currency=Blockchain.btc.name)
     print(resp)
 
 
