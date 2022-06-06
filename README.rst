@@ -25,8 +25,8 @@ Whale Alert uses API keys for access to the API. To create an API key please sig
 Each API request should target REST URI: https://api.whale-alert.io/v1 .  This library implements a :code:`X-WA-API-KEY` request header.
 
 
-Authentication
---------------
+Usage
+-----
 
 To use the WhaleAlert API client:
 
