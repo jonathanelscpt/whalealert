@@ -8,6 +8,8 @@ from requests import HTTPError
 
 
 BASE_URL = 'https://api.whale-alert.io/'
+FREE_PLAN_MIN_VALUE = 5000000
+PERSONAL_PLAN_MIN_VALUE = 100000
 
 
 class BaseAPI(object):
@@ -25,8 +27,7 @@ class BaseAPI(object):
         self.version = version
         self.timeout = timeout
         self._session = WhaleAlertAPISession()
-        if api_key:
-            self._session.init_auth(api_key)
+        self._session.init_auth(api_key)
 
     @property
     def url(self) -> str:
@@ -54,7 +55,7 @@ class WhaleAlert(BaseAPI):
     def __init__(self, api_key: str, version: str = 'v1', plan: Optional[Union[Plan, str]] = None, timeout: int = 5):
         plan = plan or Plan.FREE
         self.plan = plan if isinstance(plan, Plan) else Plan(plan)
-        self.plan_min_value = 100000 if self.plan == Plan.PERSONAL else 5000000
+        self.plan_min_value = FREE_PLAN_MIN_VALUE if self.plan == Plan.PERSONAL else PERSONAL_PLAN_MIN_VALUE
         super().__init__(api_key=api_key, version=version, timeout=timeout)
 
     def status(self) -> Dict:
@@ -62,7 +63,8 @@ class WhaleAlert(BaseAPI):
         Shows the current status of Whale Alert.
         Response lists all currently tracked blockchains, currencies and the current status for each blockchain.
         If Whale Alert is currently receiving data from a blockchain the status will be listed as "connected".
-        :return:
+
+        :return: status dict
         """
         return self._request("/status")
 
@@ -75,7 +77,7 @@ class WhaleAlert(BaseAPI):
 
         :param blockchain: The blockchain to search for the specific hash (lowercase)
         :param hash: The hash of the transaction to return
-        :return:
+        :return: transaction for a specific currency code.
         """
         return self._request(f"/transaction/{blockchain}/{hash}")
 
@@ -113,4 +115,9 @@ class WhaleAlert(BaseAPI):
         return self._request("/transactions", params=params)
 
     def blockchains(self):
+        """
+        Blockchain metadata supported in API
+
+        :return: list of supported blockchain metadata
+        """
         return self._request("/status")["blockchains"]

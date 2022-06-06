@@ -1,4 +1,3 @@
-from base64 import b64encode
 from requests import Session
 
 
@@ -15,7 +14,6 @@ class WhaleAlertAPISession(Session):
 
         self.headers.update({
             'Accept-Charset': 'utf-8',
-            'Content-Type': 'text/plain',
         })
 
     def init_auth(self, api_key):
